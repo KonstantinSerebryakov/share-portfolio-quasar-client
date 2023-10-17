@@ -1,6 +1,6 @@
-# Quasar App (quasar-project)
+# Quasar App (quasar-project) [WIP]
 
-A Quasar Project
+This is Work In Progress project.
 
 ## Install the dependencies
 
