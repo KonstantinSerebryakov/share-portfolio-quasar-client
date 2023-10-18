@@ -35,6 +35,9 @@ import { defineComponent, ref } from 'vue';
 export default defineComponent({
   components: { QCardDocumentButtonLarge },
   name: 'IndexPage',
+  setup() {
+    return {};
+  },
   methods: {},
 });
 </script>

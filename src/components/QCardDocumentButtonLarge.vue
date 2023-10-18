@@ -13,16 +13,16 @@
       </div>
       <q-space></q-space>
       <q-btn color="grey-7" round flat icon="more_vert">
-        <q-menu cover auto-close>
+        <q-menu fit auto-close anchor="top right" self="bottom right">
           <q-list>
             <q-item clickable>
-              <q-item-section>Remove Card</q-item-section>
+              <q-item-section>Public settings</q-item-section>
             </q-item>
             <q-item clickable>
-              <q-item-section>Send Feedback</q-item-section>
+              <q-item-section>Duplicate document</q-item-section>
             </q-item>
-            <q-item clickable>
-              <q-item-section>Share</q-item-section>
+            <q-item clickable class="bg-negative">
+              <q-item-section>Delete document</q-item-section>
             </q-item>
           </q-list>
         </q-menu>
@@ -37,6 +37,7 @@ import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'QCardDocumentButtonLarge',
   setup() {
+    const tmp = 123;
     return {};
   },
   methods: {},

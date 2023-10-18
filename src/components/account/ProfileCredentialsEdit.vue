@@ -85,6 +85,7 @@ import { EditableCardEvents } from 'src/components/account/events';
 import { useProfileStore } from 'src/stores/profile-store';
 import { CredentialEditEntity, CredentialEntity } from 'src/entities';
 import { ProfileStoreApi } from 'src/services/axios/profile-store-api';
+import { CredentialValidation } from 'src/services/validation/profile/credential';
 
 export default defineComponent({
   name: 'ProfileCredentialsEdit',
@@ -96,34 +97,28 @@ export default defineComponent({
   },
   async setup(props) {
     const profileStore = useProfileStore();
-    if (!profileStore.$state.profile) throw new Error('Profile is not defined');
+    const data = ref(CredentialEditEntity.getEmpty());
+    let profileId;
 
-    const profileId = profileStore.$state.profile.id;
-    const credential = profileStore.credentialCloneOrEmpty;
-    const credentialEdit = ref(new CredentialEditEntity(credential));
+    const storePromise = profileStore.credentialClonePromise;
+    storePromise.then((credential) => {
+      if (credential) {
+        profileId = profileStore.$state.data?.id;
+        data.value = new CredentialEditEntity(credential);
+      }
+    });
 
     const isShowFirstNameError = ref(false);
     const isShowLastNameError = ref(false);
     const isShowBirthdayError = ref(false);
 
-    const isFirstNameValid = (): boolean => {
-      return credentialEdit.value.firstName.length <= PROFILE_INPUT_MAX_LENGTH;
-    };
-    const isLastNameValid = (): boolean => {
-      return credentialEdit.value.lastName.length <= PROFILE_INPUT_MAX_LENGTH;
-    };
+    const isFirstNameValid = CredentialValidation.isFirstNameValid;
+    const isLastNameValid = CredentialValidation.isLastNameValid;
+    const isBirthdayFilled = CredentialValidation.isBirthdayFilled;
     const isBirthdayValid = (): boolean => {
-      const birthday = credentialEdit.value.birthday;
-      if (
-        birthday === null ||
-        (birthday.day === null &&
-          birthday.month === null &&
-          birthday.year === null)
-      ) {
-        return true;
-      }
-      const date = credentialEdit.value.getBirthdayDate();
-      return !!date;
+      const birthday = data.value.birthday;
+      if (!isBirthdayFilled(birthday)) return false;
+      return !!data.value.getBirthdayDate();
     };
     const validate = () => {
       isShowFirstNameError.value = false;
@@ -131,9 +126,9 @@ export default defineComponent({
       isShowBirthdayError.value = false;
       let isValid = true;
 
-      isShowFirstNameError.value = !isFirstNameValid();
+      isShowFirstNameError.value = !isFirstNameValid(data.value.firstName);
       isValid &&= !isShowFirstNameError.value;
-      isShowLastNameError.value = !isLastNameValid();
+      isShowLastNameError.value = !isLastNameValid(data.value.lastName);
       isValid &&= !isShowLastNameError.value;
       isShowBirthdayError.value = !isBirthdayValid();
       isValid &&= !isShowBirthdayError.value;
@@ -141,8 +136,9 @@ export default defineComponent({
     };
 
     return {
+      storePromise,
       profileId,
-      data: credentialEdit,
+      data,
       isShowFirstNameError,
       isShowLastNameError,
       isShowBirthdayError,
@@ -191,12 +187,15 @@ export default defineComponent({
     },
     submitForm(event: SubmitEvent | Event) {
       event.preventDefault();
+      if (!this.profileId) {
+        console.error('unknown profileId');
+        return;
+      }
 
       const isValid = this.validate();
       if (!isValid) return;
 
       const credentialEntity = this.data.getCredentialEntity();
-      console.log();
       ProfileStoreApi.updateCredential(this.profileId, credentialEntity).then(
         (isUpdated) => {
           if (isUpdated) {
@@ -230,6 +229,9 @@ export default defineComponent({
       this.isShowLastNameError = false;
       this.isShowBirthdayError = false;
     });
+  },
+  beforeUnmount() {
+    this.storePromise.cancel();
   },
 });
 </script>

@@ -48,15 +48,24 @@
 </template>
 
 <script lang="ts">
+import { CredentialEntity } from 'src/entities';
 import { copyToClipboardNotify } from 'src/services/utility/copyToClipboardNotify';
 import { useProfileStore } from 'src/stores/profile-store';
-import { defineComponent, Ref, ref } from 'vue';
+import { defineComponent, ref } from 'vue';
 export default defineComponent({
   name: 'ProfileCredentialsView',
   setup() {
     const profileStore = useProfileStore();
-    const credential = profileStore.$state.profile?.credential;
-    return { data: credential };
+    const data = ref(CredentialEntity.getEmpty());
+
+    const storePromise = profileStore.credentialClonePromise;
+    storePromise.then((credential) => {
+      if (credential) {
+        data.value = credential;
+      }
+    });
+
+    return { storePromise, data };
   },
   methods: {
     copyToClipboard(value: string) {
@@ -76,6 +85,9 @@ export default defineComponent({
       const str = this.data?.getLastName();
       return str ? str : 'Not Given';
     },
+  },
+  beforeUnmount() {
+    this.storePromise.cancel();
   },
 });
 </script>

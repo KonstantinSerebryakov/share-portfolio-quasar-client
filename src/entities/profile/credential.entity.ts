@@ -117,4 +117,8 @@ export class CredentialEditEntity implements ICredentialEdit {
       birthday: this.getBirthdayDate(),
     });
   }
+
+  public static getEmpty() {
+    return new CredentialEditEntity(CredentialEntity.getEmpty());
+  }
 }
