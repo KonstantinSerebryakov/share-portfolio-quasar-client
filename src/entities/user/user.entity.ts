@@ -4,7 +4,7 @@ export class UserEntity implements IUser {
   id?: string;
   email: string;
   isVerified: boolean;
-  passwordHash: string;
+  passwordHash?: string;
 
   constructor(user: IUser) {
     this.id = user.id;

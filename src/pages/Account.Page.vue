@@ -32,16 +32,8 @@ export default defineComponent({
   name: 'AccountPage',
   setup() {
     const profileStore = useProfileStore();
-    const { synchronizeDefault } = profileStore;
-
-    return { synchronizeProfile: synchronizeDefault };
+    profileStore.synchronizeDefault();
   },
   methods: {},
-  async beforeCreate() {
-    await this.synchronizeProfile();
-  },
-  mounted() {
-    this.synchronizeProfile();
-  },
 });
 </script>

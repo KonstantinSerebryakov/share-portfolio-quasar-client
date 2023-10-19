@@ -4,6 +4,7 @@
       <q-list class="fit row wrap items-center">
         <q-item class="col-12 col-md-6 q-pa-none q-pr-sm q-pt-sm" inline>
           <q-input
+            v-if="data"
             v-bind="INPUT_ATTRS"
             label="Given Name"
             v-model="data.firstName"
@@ -11,9 +12,11 @@
           >
             <template v-slot:error> {{ firstNameErrorMessage }} </template>
           </q-input>
+          <q-skeleton v-bind="INPUT_ATTRS" v-else type="QInput" class="" />
         </q-item>
         <q-item class="col-12 col-md-6 q-pa-none q-pr-sm q-pt-sm" inline>
           <q-input
+            v-if="data"
             v-bind="INPUT_ATTRS"
             label="Family Name"
             v-model="data.lastName"
@@ -21,6 +24,7 @@
           >
             <template v-slot:error> {{ lastNameErrorMessage }} </template>
           </q-input>
+          <q-skeleton v-bind="INPUT_ATTRS" v-else type="QInput" class="" />
         </q-item>
         <q-item class="col-12 q-pa-none items-end">
           <div class="text row items-end q-pr-sm">Birthday</div>
@@ -37,30 +41,36 @@
         </q-item>
         <q-item class="col-12 col-md-4 q-pa-none q-pr-sm q-pt-sm">
           <q-select
+            v-if="data"
             v-bind="SELECT_DATE_ATTRS"
             label="Year"
             :options="birth_years"
             v-model="data.birthday.year"
           >
           </q-select>
+          <q-skeleton v-bind="SELECT_DATE_ATTRS" v-else type="QInput" />
         </q-item>
         <q-item class="col-12 col-md-4 q-pa-none q-pr-sm q-pt-sm">
           <q-select
+            v-if="data"
             v-bind="SELECT_DATE_ATTRS"
             label="Month"
             :options="months"
             v-model="data.birthday.month"
           >
           </q-select>
+          <q-skeleton v-bind="SELECT_DATE_ATTRS" v-else type="QInput" />
         </q-item>
         <q-item class="col-12 col-md-4 q-pa-none q-pr-sm q-pt-sm">
           <q-select
+            v-if="data"
             v-bind="SELECT_DATE_ATTRS"
             label="Day"
             :options="days"
             v-model="data.birthday.day"
           >
           </q-select>
+          <q-skeleton v-bind="SELECT_DATE_ATTRS" v-else type="QInput" />
         </q-item>
       </q-list>
     </q-card-section>
@@ -82,11 +92,11 @@ import {
 } from 'src/services/utility/constants';
 import { Emitter } from 'mitt';
 import { EditableCardEvents } from 'src/components/account/events';
-import { CredentialEditEntity, CredentialEntity } from 'src/entities';
+import { CredentialEditEntity } from 'src/entities';
 import { ProfileStoreApi } from 'src/services/axios/profile-store-api';
 import { CredentialValidation } from 'src/services/validation/profile/credential';
-import { getCredentialClonePromise } from 'src/stores/profile/profile-store.service';
 import { useProfileStore } from 'src/stores/profile-store';
+import { getCredentialClonePromise } from 'src/stores/services/profile-store.service';
 
 export default defineComponent({
   name: 'ProfileCredentialsEdit',
@@ -96,6 +106,7 @@ export default defineComponent({
       default: null,
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async setup(props) {
     const profileStore = useProfileStore();
     const data = ref(CredentialEditEntity.getEmpty());
@@ -232,7 +243,7 @@ export default defineComponent({
     });
   },
   beforeUnmount() {
-    // this.storePromise.cancel();
+    this.storePromise.cancel();
   },
 });
 </script>
@@ -241,4 +252,3 @@ export default defineComponent({
   text-decoration: underline; /* Underline the text on hover */
 }
 </style>
-src/stores/profile/profile-store

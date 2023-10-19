@@ -10,9 +10,10 @@
       >
         <q-item-section>
           <q-item-label overline>Given Name</q-item-label>
-          <q-item-label class="text-h5 ellipsis">{{
+          <q-item-label v-if="data" class="text-h5 ellipsis">{{
             getFirstName
           }}</q-item-label>
+          <q-skeleton v-else type="text" class="text-h5 ellipsis" />
         </q-item-section>
       </q-item>
       <q-item
@@ -24,9 +25,10 @@
       >
         <q-item-section>
           <q-item-label overline>Family Name</q-item-label>
-          <q-item-label class="text-h5 ellipsis">{{
+          <q-item-label v-if="data" class="text-h5 ellipsis">{{
             getLastName
           }}</q-item-label>
+          <q-skeleton v-else type="text" class="text-h5 ellipsis" />
         </q-item-section>
       </q-item>
       <q-item
@@ -38,9 +40,10 @@
       >
         <q-item-section>
           <q-item-label overline>Birthday</q-item-label>
-          <q-item-label class="text-h5 ellipsis">{{
+          <q-item-label v-if="data" class="text-h5 ellipsis">{{
             getFullDate
           }}</q-item-label>
+          <q-skeleton v-else type="text" class="text-h5 ellipsis" />
         </q-item-section>
       </q-item>
     </q-list>
@@ -50,17 +53,17 @@
 <script lang="ts">
 import { CredentialEntity } from 'src/entities';
 import { copyToClipboardNotify } from 'src/services/utility/copyToClipboardNotify';
-import { getCredentialClonePromise } from 'src/stores/profile/profile-store.service';
+import { getCredentialClonePromise } from 'src/stores/services/profile-store.service';
 import { defineComponent, ref } from 'vue';
 export default defineComponent({
   name: 'ProfileCredentialsView',
   setup() {
-    const data = ref(CredentialEntity.getEmpty());
+    const data = ref(null as CredentialEntity | null);
 
     const storePromise = getCredentialClonePromise();
     storePromise.then((credential) => {
       if (credential) {
-        data.value = credential;
+        data.value = new CredentialEntity(credential);
       }
     });
 
@@ -72,21 +75,18 @@ export default defineComponent({
     },
   },
   computed: {
-    getFullDate() {
-      const str = this.data?.getBirthdayString();
-      return str ? str : 'Not Given';
-    },
     getFirstName() {
-      const str = this.data?.getFirstName();
-      return str ? str : 'Not Given';
+      return this.data?.getFirstName() ?? '';
     },
     getLastName() {
-      const str = this.data?.getLastName();
-      return str ? str : 'Not Given';
+      return this.data?.getLastName() ?? '';
+    },
+    getFullDate() {
+      return this.data?.getBirthdayString() ?? '';
     },
   },
   beforeUnmount() {
-    // this.storePromise.cancel();
+    this.storePromise.cancel();
   },
 });
 </script>
@@ -95,4 +95,4 @@ export default defineComponent({
   text-decoration: underline; /* Underline the text on hover */
 }
 </style>
-src/stores/profile/profile-store
+src/stores/profile/profile-store src/stores/services/profile-store.service

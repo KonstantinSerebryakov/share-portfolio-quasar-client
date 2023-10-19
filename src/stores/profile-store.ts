@@ -10,17 +10,10 @@ import {
   pushProfileSessionStorage,
 } from '../services/browser_storages/profile-store-session-storage';
 import { ProfileStoreApi } from '../services/axios/profile-store-api';
-import { ISocialMedias } from 'src/interfaces';
 import { computed, ref, watch } from 'vue';
 import mitt from 'mitt';
-enum PROFILE_STORE_STATE {
-  INITIAL = 'INITIAL',
-  PENDING_BROWSER_STORAGE = 'PENDING_BROWSER_STORAGE',
-  PENDING_REMOTE = 'PENDING_REMOTE',
-  FULLFILLED = 'FULLFILLED',
-  ERROR = 'ERROR',
-}
-
+import { STORE_STATE } from './services/store-state.enum';
+import { eventBus, EVENT_APPLICATION } from 'src/boot/event-bus';
 export const profileStoreEventEmitter = mitt();
 export enum PROFILE_STORE_EVENT {
   // LOCAL
@@ -40,36 +33,14 @@ export enum PROFILE_STORE_EVENT {
 export const useProfileStore = defineStore('profile', {
   state: () => ({
     data: null as ProfileEntity | null,
-    dataState: PROFILE_STORE_STATE.INITIAL as PROFILE_STORE_STATE,
+    dataState: STORE_STATE.INITIAL as STORE_STATE,
   }),
   getters: {
-    profileClone: (state) => {
-      const profile = state.data;
-      return profile ? new ProfileEntity(profile) : null;
-    },
-    credentialClone: (state) => {
-      const profile = state.data;
-      return profile ? profile.getCredentialClone() : null;
-    },
-    credentialCloneOrEmpty: (state) => {
-      const clone = state.data?.getCredentialClone();
-      if (clone) return clone;
-      return clone ? clone : CredentialEntity.getEmpty();
-    },
-    socialMediaNodesClone: (state) => {
-      const profile = state.data;
-      return profile ? profile.getSocialMediaNodesClone() : null;
-    },
-    socialMediaNodesCloneOrEmpty: (state) => {
-      const profile = state.data;
-      const clone = profile ? profile.getSocialMediaNodesClone() : null;
-      return clone ? clone : ([] as ISocialMedias);
-    },
     isSynchronized: (state) => {
-      return computed(() => state.dataState === PROFILE_STORE_STATE.FULLFILLED);
+      return computed(() => state.dataState === STORE_STATE.FULLFILLED);
     },
     isInitial: (state) => {
-      return computed(() => state.dataState === PROFILE_STORE_STATE.INITIAL);
+      return computed(() => state.dataState === STORE_STATE.INITIAL);
     },
   },
   actions: {
@@ -79,7 +50,7 @@ export const useProfileStore = defineStore('profile', {
       await this.synchronizeWithSessionStorage();
       if (this.$state.data) return;
 
-      this.$state.dataState = PROFILE_STORE_STATE.PENDING_REMOTE;
+      this.$state.dataState = STORE_STATE.PENDING_REMOTE;
       const fetched = await ProfileStoreApi.getProfileDefault();
     },
     async synchronizeById(profileId: string, force = false) {
@@ -88,36 +59,37 @@ export const useProfileStore = defineStore('profile', {
       await this.synchronizeWithSessionStorage();
       if (this.$state.data) return;
 
-      this.$state.dataState = PROFILE_STORE_STATE.PENDING_REMOTE;
+      this.$state.dataState = STORE_STATE.PENDING_REMOTE;
       const fetched = await ProfileStoreApi.getProfile(profileId);
     },
     synchronizeWithSessionStorage(force = false) {
       if (
         !force &&
-        this.$state.dataState !== PROFILE_STORE_STATE.INITIAL &&
-        this.$state.dataState !== PROFILE_STORE_STATE.ERROR
+        this.$state.dataState !== STORE_STATE.INITIAL &&
+        this.$state.dataState !== STORE_STATE.CLEARED &&
+        this.$state.dataState !== STORE_STATE.ERROR
       ) {
         return;
       }
-      this.$state.dataState = PROFILE_STORE_STATE.PENDING_BROWSER_STORAGE;
+      this.$state.dataState = STORE_STATE.PENDING_BROWSER_STORAGE;
       const sessionProfile = extractProfileSessionStorage();
 
       if (sessionProfile) {
         this.$state.data = sessionProfile;
+        this.$state.dataState = STORE_STATE.FULLFILLED;
       } else {
         this.$state.data = null;
       }
-      this.$state.dataState = PROFILE_STORE_STATE.FULLFILLED;
     },
     async storeSessionStorage() {
       const profile = this.$state.data;
       if (profile) {
         pushProfileSessionStorage(profile).then(() => {
-          this.$state.dataState = PROFILE_STORE_STATE.FULLFILLED;
+          this.$state.dataState = STORE_STATE.FULLFILLED;
         });
       } else {
         clearProfileSessionStorage().then(() => {
-          this.$state.dataState = PROFILE_STORE_STATE.FULLFILLED;
+          this.$state.dataState = STORE_STATE.CLEARED;
         });
       }
     },
@@ -175,6 +147,14 @@ profileStoreEventEmitter.on(PROFILE_STORE_EVENT.GET_PROFILE_SUCCESS, (data) => {
   profileStore.storeSessionStorage();
 });
 profileStoreEventEmitter.on(PROFILE_STORE_EVENT.DELETE_PROFILE_SUCCESS, () => {
+  profileStore.$state.data = null;
+  profileStore.storeSessionStorage();
+});
+
+//
+// OUTER
+//
+eventBus.on(EVENT_APPLICATION.LOGOUT_SUCCESS, () => {
   profileStore.$state.data = null;
   profileStore.storeSessionStorage();
 });

@@ -1,12 +1,14 @@
 import { IProfile } from 'src/interfaces';
 import { SocialMediaNodeEntity } from './socialMediaNode.entity';
 import { CredentialEntity } from './credential.entity';
+import { EssentialInfoEntity } from './essentialInfo.entity';
 
 export class ProfileEntity implements IProfile {
   id: string;
   userId: string;
   socialMediaNodes?: SocialMediaNodeEntity[];
   credential?: CredentialEntity | null;
+  essentialInfo?: EssentialInfoEntity | null;
 
   constructor(profile: IProfile) {
     this.id = profile.id;
@@ -16,6 +18,8 @@ export class ProfileEntity implements IProfile {
     });
     if (profile.credential)
       this.credential = new CredentialEntity(profile.credential);
+    if (profile.essentialInfo)
+      this.essentialInfo = new EssentialInfoEntity(profile.essentialInfo);
   }
 
   public getPublicSelf(): Omit<IProfile, 'id' | 'socialMedias' | 'credential'> {

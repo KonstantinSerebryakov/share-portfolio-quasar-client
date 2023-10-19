@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia';
 import mitt from 'mitt';
-import { IUser } from 'src/interfaces';
-import { deepCopy } from 'src/services/utility/utility';
 import { UserStoreApi } from '../services/axios/user-store-api';
 import {
   clearUserSessionStorage,
@@ -11,54 +9,87 @@ import {
 import { eventBus, EVENT_APPLICATION } from 'src/boot/event-bus';
 import { IEventPayloadLoginSuccess } from 'src/interfaces/application-event.interface';
 import { UserEntity } from 'src/entities';
+import { STORE_STATE } from './services/store-state.enum';
+import { computed, watch } from 'vue';
 
 export const userStoreEventEmitter = mitt();
 export enum USER_STORE_EVENT {
   // LOCAL
-  USER_NOT_DEFINED = 'USER_NOT_DEFINED',
+  FULLFILLED = 'FULLFILLED',
 
   // API
   UPLOAD_USER_SUCCESS = 'UPLOAD_USER_SUCCESS',
+
+  // STATE
   GET_USER_SUCCESS = 'GET_USER_SUCCESS',
 }
 
 export const useUserStore = defineStore('user', {
-  state: () => ({ user: null as IUser | null }),
+  state: () => ({
+    data: null as UserEntity | null,
+    dataState: STORE_STATE.INITIAL as STORE_STATE,
+  }),
+
   getters: {
-    userClone: (state) => {
-      const user = state.user;
-      return deepCopy(user);
+    isSynchronized: (state) => {
+      return computed(() => state.dataState === STORE_STATE.FULLFILLED);
+    },
+    isInitial: (state) => {
+      return computed(() => state.dataState === STORE_STATE.INITIAL);
     },
   },
   actions: {
     async synchronizeByEmail(email: string, force = false) {
-      if (this.$state.user && !force) return;
+      if (this.$state.data && !force) return;
 
       await this.synchronizeWithSessionStorage();
-      if (this.$state.user) return;
+      if (this.$state.data) return;
 
+      this.$state.dataState = STORE_STATE.PENDING_REMOTE;
       const fetched = await UserStoreApi.getUser(email);
     },
-    async synchronizeWithSessionStorage() {
+    async synchronizeWithSessionStorage(force = false) {
+      if (
+        !force &&
+        this.$state.dataState !== STORE_STATE.INITIAL &&
+        this.$state.dataState !== STORE_STATE.CLEARED &&
+        this.$state.dataState !== STORE_STATE.ERROR
+      ) {
+        return;
+      }
+      this.$state.dataState = STORE_STATE.PENDING_BROWSER_STORAGE;
       const sessionUser = await extractUserSessionStorage();
-      if (sessionUser) this.$state.user = sessionUser;
-      else this.$state.user = null;
+      if (sessionUser) {
+        this.$state.data = sessionUser;
+        this.$state.dataState = STORE_STATE.FULLFILLED;
+      } else {
+        this.$state.data = null;
+      }
     },
     async storeSessionStorage() {
-      const user = this.$state.user;
+      const user = this.$state.data;
       if (user) {
-        pushUserSessionStorage(user);
+        pushUserSessionStorage(user).then(() => {
+          this.$state.dataState = STORE_STATE.FULLFILLED;
+        });
       } else {
-        clearUserSessionStorage();
+        clearUserSessionStorage().then(() => {
+          this.$state.dataState = STORE_STATE.CLEARED;
+        });
       }
     },
   },
 });
 
 const userStore = useUserStore();
+watch(userStore.isSynchronized, async (newValue, oldValue) => {
+  if (newValue) {
+    userStoreEventEmitter.emit(USER_STORE_EVENT.FULLFILLED);
+  }
+});
 userStoreEventEmitter.on(USER_STORE_EVENT.GET_USER_SUCCESS, (data) => {
   const user = data as UserEntity;
-  userStore.$state.user = user;
+  userStore.$state.data = user;
   userStore.storeSessionStorage();
 });
 //
@@ -67,4 +98,8 @@ userStoreEventEmitter.on(USER_STORE_EVENT.GET_USER_SUCCESS, (data) => {
 eventBus.on(EVENT_APPLICATION.LOGIN_SUCCESS, (data) => {
   const payload = data as IEventPayloadLoginSuccess;
   userStore.synchronizeByEmail(payload.email);
+});
+eventBus.on(EVENT_APPLICATION.LOGOUT_SUCCESS, () => {
+  userStore.$state.data = null;
+  userStore.storeSessionStorage();
 });

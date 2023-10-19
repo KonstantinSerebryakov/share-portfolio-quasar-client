@@ -22,21 +22,9 @@ export function getCredentialCloneOrEmpty() {
   return clone ? clone : CredentialEntity.getEmpty();
 }
 export function getCredentialClonePromise() {
-  let resolveFunc: () => void;
-  return new CancelablePromise((resolve, reject, onCancel) => {
-    if (profileStore.isSynchronized) resolve(null);
-    resolveFunc = () => {
-      resolve(null);
-    };
-    profileStoreEventEmitter.on(PROFILE_STORE_EVENT.FULLFILLED, resolveFunc);
-    onCancel(() => {
-      profileStoreEventEmitter.off(PROFILE_STORE_EVENT.FULLFILLED, resolveFunc);
-      ('cancelled');
-    });
-  }).then(() => {
+  return getClonePromise(() => {
     const profile = profileStore.data;
     const clone = profile ? profile.getCredentialClone() : null;
-    profileStoreEventEmitter.off(PROFILE_STORE_EVENT.FULLFILLED, resolveFunc);
     return clone;
   });
 }
@@ -50,10 +38,29 @@ export function getSocialMediaNodesCloneOrEmpty() {
   return clone ? clone : ([] as ISocialMedias);
 }
 export function getSocialMediaNodesClonePromise() {
-  return new CancelablePromise((resolve, reject, onCancel) => {
-    profileStoreEventEmitter.on(PROFILE_STORE_EVENT.FULLFILLED, resolve);
-  }).then(() => {
+  return getClonePromise(() => {
     const profile = profileStore.$state.data;
     return profile ? profile.getSocialMediaNodesClone() : null;
   });
+}
+
+// utility
+
+function getClonePromise<T>(callback: () => T) {
+  let resolveFunc: () => void;
+  return new CancelablePromise((resolve, reject, onCancel) => {
+    if (profileStore.isSynchronized.value) resolve(null);
+    resolveFunc = () => {
+      resolve(null);
+    };
+    profileStoreEventEmitter.on(PROFILE_STORE_EVENT.FULLFILLED, resolveFunc);
+    onCancel(() => {
+      profileStoreEventEmitter.off(PROFILE_STORE_EVENT.FULLFILLED, resolveFunc);
+    });
+  })
+    .then(() => {
+      profileStoreEventEmitter.off(PROFILE_STORE_EVENT.FULLFILLED, resolveFunc);
+      return;
+    })
+    .then(callback);
 }
