@@ -24,7 +24,7 @@
 
 <script lang="ts">
 import QMenuProfile from 'src/components/QListProfileMenu.vue';
-import { useProfileStore } from 'src/stores/profile-store';
+import { useProfileStore } from 'src/stores/profile/profile-store';
 import { useUserStore } from 'src/stores/user-store';
 import { defineComponent, ref } from 'vue';
 
@@ -44,4 +44,5 @@ export default defineComponent({
   },
 });
 </script>
+src/stores/profile-store src/stores/profile/profile-store
 src/stores/profile-store

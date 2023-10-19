@@ -12,10 +12,11 @@ export class CredentialValidation {
     const day = birthday.day;
     const month = birthday.month;
     const year = birthday.year;
-    return (
+    if (
       (day === null || month === null || year === null) &&
-      day === month &&
-      month === year
-    );
+      !(day === month && month === year)
+    )
+      return false;
+    return true;
   }
 }

@@ -136,3 +136,4 @@ export default defineComponent({
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 </style>
+src/stores/profile/profile-store src/stores/profile-store

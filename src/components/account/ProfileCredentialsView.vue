@@ -50,15 +50,14 @@
 <script lang="ts">
 import { CredentialEntity } from 'src/entities';
 import { copyToClipboardNotify } from 'src/services/utility/copyToClipboardNotify';
-import { useProfileStore } from 'src/stores/profile-store';
+import { getCredentialClonePromise } from 'src/stores/profile/profile-store.service';
 import { defineComponent, ref } from 'vue';
 export default defineComponent({
   name: 'ProfileCredentialsView',
   setup() {
-    const profileStore = useProfileStore();
     const data = ref(CredentialEntity.getEmpty());
 
-    const storePromise = profileStore.credentialClonePromise;
+    const storePromise = getCredentialClonePromise();
     storePromise.then((credential) => {
       if (credential) {
         data.value = credential;
@@ -87,7 +86,7 @@ export default defineComponent({
     },
   },
   beforeUnmount() {
-    this.storePromise.cancel();
+    // this.storePromise.cancel();
   },
 });
 </script>
@@ -96,3 +95,4 @@ export default defineComponent({
   text-decoration: underline; /* Underline the text on hover */
 }
 </style>
+src/stores/profile/profile-store

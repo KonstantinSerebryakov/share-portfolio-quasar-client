@@ -4,7 +4,6 @@ import {
   ProfileEntity,
   SocialMediaNodeEntity,
 } from 'src/entities';
-import mitt from 'mitt';
 import {
   clearProfileSessionStorage,
   extractProfileSessionStorage,
@@ -13,7 +12,14 @@ import {
 import { ProfileStoreApi } from '../services/axios/profile-store-api';
 import { ISocialMedias } from 'src/interfaces';
 import { computed, ref, watch } from 'vue';
-import { cancelable, CancelablePromise } from 'cancelable-promise';
+import mitt from 'mitt';
+enum PROFILE_STORE_STATE {
+  INITIAL = 'INITIAL',
+  PENDING_BROWSER_STORAGE = 'PENDING_BROWSER_STORAGE',
+  PENDING_REMOTE = 'PENDING_REMOTE',
+  FULLFILLED = 'FULLFILLED',
+  ERROR = 'ERROR',
+}
 
 export const profileStoreEventEmitter = mitt();
 export enum PROFILE_STORE_EVENT {
@@ -29,13 +35,6 @@ export enum PROFILE_STORE_EVENT {
 
   // STATE
   FULLFILLED = 'FULLFILLED',
-}
-enum PROFILE_STORE_STATE {
-  INITIAL = 'INITIAL',
-  PENDING_BROWSER_STORAGE = 'PENDING_BROWSER_STORAGE',
-  PENDING_REMOTE = 'PENDING_REMOTE',
-  FULLFILLED = 'FULLFILLED',
-  ERROR = 'ERROR',
 }
 
 export const useProfileStore = defineStore('profile', {
@@ -57,14 +56,6 @@ export const useProfileStore = defineStore('profile', {
       if (clone) return clone;
       return clone ? clone : CredentialEntity.getEmpty();
     },
-    credentialClonePromise: (state) => {
-      return new CancelablePromise((resolve, reject, onCancel) => {
-        profileStoreEventEmitter.on(PROFILE_STORE_EVENT.FULLFILLED, resolve);
-      }).then(() => {
-        const profile = state.data;
-        return profile ? profile.getCredentialClone() : null;
-      });
-    },
     socialMediaNodesClone: (state) => {
       const profile = state.data;
       return profile ? profile.getSocialMediaNodesClone() : null;
@@ -73,14 +64,6 @@ export const useProfileStore = defineStore('profile', {
       const profile = state.data;
       const clone = profile ? profile.getSocialMediaNodesClone() : null;
       return clone ? clone : ([] as ISocialMedias);
-    },
-    socialMediaNodesClonePromise: (state) => {
-      return new CancelablePromise((resolve, reject, onCancel) => {
-        profileStoreEventEmitter.on(PROFILE_STORE_EVENT.FULLFILLED, resolve);
-      }).then(() => {
-        const profile = state.data;
-        return profile ? profile.getSocialMediaNodesClone() : null;
-      });
     },
     isSynchronized: (state) => {
       return computed(() => state.dataState === PROFILE_STORE_STATE.FULLFILLED);

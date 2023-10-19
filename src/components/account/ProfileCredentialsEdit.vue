@@ -82,10 +82,11 @@ import {
 } from 'src/services/utility/constants';
 import { Emitter } from 'mitt';
 import { EditableCardEvents } from 'src/components/account/events';
-import { useProfileStore } from 'src/stores/profile-store';
 import { CredentialEditEntity, CredentialEntity } from 'src/entities';
 import { ProfileStoreApi } from 'src/services/axios/profile-store-api';
 import { CredentialValidation } from 'src/services/validation/profile/credential';
+import { getCredentialClonePromise } from 'src/stores/profile/profile-store.service';
+import { useProfileStore } from 'src/stores/profile-store';
 
 export default defineComponent({
   name: 'ProfileCredentialsEdit',
@@ -98,12 +99,12 @@ export default defineComponent({
   async setup(props) {
     const profileStore = useProfileStore();
     const data = ref(CredentialEditEntity.getEmpty());
-    let profileId;
+    const profileId = ref('' as string | undefined);
 
-    const storePromise = profileStore.credentialClonePromise;
+    const storePromise = getCredentialClonePromise();
     storePromise.then((credential) => {
       if (credential) {
-        profileId = profileStore.$state.data?.id;
+        profileId.value = profileStore.$state.data?.id;
         data.value = new CredentialEditEntity(credential);
       }
     });
@@ -118,7 +119,7 @@ export default defineComponent({
     const isBirthdayValid = (): boolean => {
       const birthday = data.value.birthday;
       if (!isBirthdayFilled(birthday)) return false;
-      return !!data.value.getBirthdayDate();
+      return birthday.day === null || !!data.value.getBirthdayDate();
     };
     const validate = () => {
       isShowFirstNameError.value = false;
@@ -231,7 +232,7 @@ export default defineComponent({
     });
   },
   beforeUnmount() {
-    this.storePromise.cancel();
+    // this.storePromise.cancel();
   },
 });
 </script>
@@ -240,3 +241,4 @@ export default defineComponent({
   text-decoration: underline; /* Underline the text on hover */
 }
 </style>
+src/stores/profile/profile-store

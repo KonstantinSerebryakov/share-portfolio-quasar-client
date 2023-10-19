@@ -16,7 +16,6 @@ export function extractProfileSessionStorage() {
     const dateStr = profile.credential.birthday.toString();
     profile.credential.birthday = new Date(dateStr);
   }
-  console.log(profile);
   return new ProfileEntity(profile);
 }
 
