@@ -1,7 +1,7 @@
 <template>
   <div class="text-wrapper">
     <q-resize-observer @resize="onResize" />
-    <span class="resizable-text" ref="text">
+    <span ref="text">
       {{ value }}
     </span>
   </div>
@@ -21,33 +21,22 @@ export default defineComponent({
   },
   setup(props, context) {
     const text = ref(null as HTMLElement | null);
-    const initialFontSize = ref(0);
-    const initialTextWidth = ref(0);
-    return { text, initialFontSize, initialTextWidth };
+    return { text };
   },
   methods: {
     onResize({ height, width }: { height: number; width: number }) {
-      if (!this.text || !this.initialFontSize) {
-        this.$nextTick(() => {
-          this.onResize({ height, width });
-        });
-        return;
-      }
+      if (!this.text) return;
 
-      const scaleFactor = width / this.initialTextWidth;
+      const textWidth = this.text.offsetWidth;
+      const scale = width / textWidth;
 
-      this.text.style.fontSize = `${scaleFactor * this.initialFontSize}px`;
-    },
-  },
-  mounted() {
-    if (this.text) {
-      const fontSize = window
+      const fontSizeStr = window
         .getComputedStyle(this.text, null)
         .getPropertyValue('font-size');
-      const numStr = fontSize.substring(0, fontSize.length - 2);
-      this.initialFontSize = parseInt(numStr);
-      this.initialTextWidth = this.text.offsetWidth;
-    }
+      const fontSize = fontSizeStr.substring(0, fontSizeStr.length - 2);
+      const newSize = Math.floor(parseInt(fontSize) * scale);
+      this.text.style.fontSize = `${newSize - 1}px`;
+    },
   },
 });
 </script>

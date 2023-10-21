@@ -4,14 +4,15 @@
       <div class="col-12 col-sm-4">
         <q-img src="https://loremflickr.com/300/400" :ratio="3 / 4" class="" />
       </div>
-      <div class="col-12 col-sm">
-        <scalable-text
-          value="Konstantin Serebryakov"
-          class="text-h1 text-no-wrap non-selectable"
-        ></scalable-text>
+      <div class="col-12 col-sm content-around row">
+        <div class="col-12">
+          <scalable-text
+            value="Konstantin Serebryakov"
+            class="text-h1 text-no-wrap non-selectable text-weight-bolder"
+          ></scalable-text>
+        </div>
       </div>
     </div>
-    <!-- <div @click="tmp" class="col-12 col-sm-grow bg-cyan"></div> -->
   </q-page>
 </template>
 
