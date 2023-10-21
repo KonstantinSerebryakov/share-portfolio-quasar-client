@@ -16,8 +16,8 @@ const routes: RouteRecordRaw[] = [
       },
       //document editing !AUTH
       {
-        path: 'page/<name>',
-        component: () => import('src/pages/ErrorNotFound.vue'),
+        path: 'document/:id',
+        component: () => import('src/pages/DocumentEdit.Page.vue'),
       },
       /*
       //list of all docs !?AUTH?
@@ -34,6 +34,12 @@ const routes: RouteRecordRaw[] = [
     ],
     beforeEnter: (to, from, next) => {
       // Check authentication before entering any child route
+      console.log(to.path);
+      switch (to.path) {
+        case '': {
+          break;
+        }
+      }
       if (!validateJWT()) {
         next('/signin'); // Redirect to the login page or another route for unauthenticated users
       } else {

@@ -12,7 +12,7 @@ import {
 
 export class ProfileStoreApi {
   static async getProfile(profileId: string) {
-    const URL = `profiles/${profileId}`;
+    const URL = `profiles/profile/${profileId}`;
     const profile = await this.fetchApiGet<IProfile>(URL);
     const profileEntity = new ProfileEntity(profile);
     profileStoreEventEmitter.emit(
@@ -20,6 +20,12 @@ export class ProfileStoreApi {
       profile
     );
     return profileEntity;
+  }
+  static async getProfilesList() {
+    const URL = 'profiles/list/essential';
+    const profiles = await this.fetchApiGet<IProfile[]>(URL, 'profiles');
+    const entities = profiles.map((profile) => new ProfileEntity(profile));
+    return entities;
   }
   static async getProfileDefault() {
     const URL = 'profiles/default';
@@ -73,14 +79,22 @@ export class ProfileStoreApi {
     profileStoreEventEmitter.emit(PROFILE_STORE_EVENT.DELETE_PROFILE_SUCCESS);
     return fetched;
   }
+  static async createProfile() {
+    const URL = 'profiles/new';
+    const fetched = await this.fetchApiPost(URL);
+    return fetched;
+  }
 
   //
   // FETCH AXIOS
   //
-  private static async fetchApiGet<T>(URL: string): Promise<T> {
+  private static async fetchApiGet<T>(
+    URL: string,
+    key = 'profile'
+  ): Promise<T> {
     const data = await api.get(URL).then((response) => {
       if (response.status === 200) {
-        return response.data.profile;
+        return response.data[key];
       }
       throw new Error(`${response.status}`);
     });
@@ -88,7 +102,7 @@ export class ProfileStoreApi {
   }
   private static async fetchApiPost<T extends ISocialMedias>(
     URL: string,
-    payload: T
+    payload?: T
   ) {
     const data = await api.post(URL, payload).then((response) => {
       if (response.status === 200 || response.status === 201) {

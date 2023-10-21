@@ -23,7 +23,7 @@ export function getUserClonePromise() {
 
 // utility
 
-function getClonePromise(callback: () => unknown) {
+function getClonePromise<T>(callback: () => T) {
   let resolveFunc: () => void;
   return new CancelablePromise((resolve, reject, onCancel) => {
     if (userStore.isSynchronized.value) resolve(null);

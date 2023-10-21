@@ -1,16 +1,16 @@
 import { defineStore } from 'pinia';
 import mitt from 'mitt';
 import { UserStoreApi } from '../services/axios/user-store-api';
-import {
-  clearUserSessionStorage,
-  extractUserSessionStorage,
-  pushUserSessionStorage,
-} from '../services/browser_storages/user-store-session-storage';
 import { eventBus, EVENT_APPLICATION } from 'src/boot/event-bus';
 import { IEventPayloadLoginSuccess } from 'src/interfaces/application-event.interface';
 import { UserEntity } from 'src/entities';
 import { STORE_STATE } from './services/store-state.enum';
 import { computed, watch } from 'vue';
+import {
+  clearUserLocalStorage,
+  extractUserLocalStorage,
+  pushUserLocalStorage,
+} from 'src/services/browser_storages/user-store-local-storage';
 
 export const userStoreEventEmitter = mitt();
 export enum USER_STORE_EVENT {
@@ -42,13 +42,13 @@ export const useUserStore = defineStore('user', {
     async synchronizeByEmail(email: string, force = false) {
       if (this.$state.data && !force) return;
 
-      await this.synchronizeWithSessionStorage();
+      await this.synchronizeWithLocalStorage();
       if (this.$state.data) return;
 
       this.$state.dataState = STORE_STATE.PENDING_REMOTE;
       const fetched = await UserStoreApi.getUser(email);
     },
-    async synchronizeWithSessionStorage(force = false) {
+    async synchronizeWithLocalStorage(force = false) {
       if (
         !force &&
         this.$state.dataState !== STORE_STATE.INITIAL &&
@@ -57,23 +57,29 @@ export const useUserStore = defineStore('user', {
       ) {
         return;
       }
+      const isFetchRequired = this.$state.dataState === STORE_STATE.INITIAL;
+
       this.$state.dataState = STORE_STATE.PENDING_BROWSER_STORAGE;
-      const sessionUser = await extractUserSessionStorage();
-      if (sessionUser) {
-        this.$state.data = sessionUser;
+      const localUser = await extractUserLocalStorage();
+      if (localUser) {
+        if (isFetchRequired) {
+          this.synchronizeByEmail(localUser.email);
+          return;
+        }
+        this.$state.data = localUser;
         this.$state.dataState = STORE_STATE.FULLFILLED;
       } else {
         this.$state.data = null;
       }
     },
-    async storeSessionStorage() {
+    async storeLocalStorage() {
       const user = this.$state.data;
       if (user) {
-        pushUserSessionStorage(user).then(() => {
+        pushUserLocalStorage(user).then(() => {
           this.$state.dataState = STORE_STATE.FULLFILLED;
         });
       } else {
-        clearUserSessionStorage().then(() => {
+        clearUserLocalStorage().then(() => {
           this.$state.dataState = STORE_STATE.CLEARED;
         });
       }
@@ -90,7 +96,7 @@ watch(userStore.isSynchronized, async (newValue, oldValue) => {
 userStoreEventEmitter.on(USER_STORE_EVENT.GET_USER_SUCCESS, (data) => {
   const user = data as UserEntity;
   userStore.$state.data = user;
-  userStore.storeSessionStorage();
+  userStore.storeLocalStorage();
 });
 //
 // OUTER
@@ -101,5 +107,5 @@ eventBus.on(EVENT_APPLICATION.LOGIN_SUCCESS, (data) => {
 });
 eventBus.on(EVENT_APPLICATION.LOGOUT_SUCCESS, () => {
   userStore.$state.data = null;
-  userStore.storeSessionStorage();
+  userStore.storeLocalStorage();
 });

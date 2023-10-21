@@ -40,12 +40,11 @@ export default defineComponent({
   name: 'MainLayout',
   setup() {
     const userStore = useUserStore();
-    userStore.synchronizeWithSessionStorage();
+    userStore.synchronizeWithLocalStorage();
 
     const data = ref(null as UserEntity | null);
     const storePromise = getUserClonePromise();
     storePromise.then((user) => {
-      console.log(user);
       data.value = user;
     });
 

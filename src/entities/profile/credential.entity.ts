@@ -32,6 +32,17 @@ export class CredentialEntity implements ICredential {
     const data = this.lastName;
     return data && data.length > 0 ? data : 'Not Given';
   }
+  public getFullNameOrEmpty() {
+    const firstName = this.firstName;
+    const lastName = this.lastName;
+    return firstName && lastName && firstName.length > 0 && lastName.length > 0
+      ? firstName + ' ' + lastName
+      : '';
+  }
+  public getFullName() {
+    const data = this.getFullNameOrEmpty();
+    return data.length > 0 ? data : 'Not Given';
+  }
 
   public getBirthdayString(separator = '.') {
     if (this.birthday) {
