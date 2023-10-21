@@ -1,14 +1,24 @@
 <template>
-  <q-page class="q-px-md q-pb-md row wrap items-start content-start">
-    <div class="col-12 items-stretch row bg-orange">
+  <q-page class="q-px-md q-pt-md q-pb-md row wrap items-start content-start">
+    <div class="col-12 items-stretch row bg-orange rounded-borders">
       <div class="col-12 col-sm-4">
-        <q-img src="https://loremflickr.com/300/400" :ratio="3 / 4" class="" />
+        <!-- <div class="col-12 col-sm-4" style="height: calc(100vh-50px)"> -->
+        <q-img
+          src="https://loremflickr.com/300/400"
+          :ratio="3 / 4"
+          class="rounded-borders"
+          style="max-height: calc(100vh - 50px - $space-md)"
+        />
       </div>
       <div class="col-12 col-sm content-around row">
         <div class="col-12">
           <scalable-text
             value="Konstantin Serebryakov"
             class="text-h1 text-no-wrap non-selectable text-weight-bolder"
+          ></scalable-text>
+          <scalable-text
+            value="Konsta xxx aaa sss"
+            class="text-h5 text-no-wrap non-selectable text-weight-bolder"
           ></scalable-text>
         </div>
       </div>

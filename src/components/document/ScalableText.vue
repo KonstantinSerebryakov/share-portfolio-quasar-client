@@ -1,5 +1,5 @@
 <template>
-  <div class="text-wrapper">
+  <div class="">
     <q-resize-observer @resize="onResize" />
     <span ref="text">
       {{ value }}
@@ -21,21 +21,34 @@ export default defineComponent({
   },
   setup(props, context) {
     const text = ref(null as HTMLElement | null);
-    return { text };
+    const isScaled = ref(false);
+    const baseFontSize = ref(9999999);
+    return { text, isScaled, baseFontSize };
   },
   methods: {
     onResize({ height, width }: { height: number; width: number }) {
       if (!this.text) return;
 
       const textWidth = this.text.offsetWidth;
+      if (width > textWidth && !this.isScaled) return;
       const scale = width / textWidth;
 
       const fontSizeStr = window
         .getComputedStyle(this.text, null)
         .getPropertyValue('font-size');
-      const fontSize = fontSizeStr.substring(0, fontSizeStr.length - 2);
-      const newSize = Math.floor(parseInt(fontSize) * scale);
-      this.text.style.fontSize = `${newSize - 1}px`;
+      const fontSize = parseInt(
+        fontSizeStr.substring(0, fontSizeStr.length - 2)
+      );
+      if (!this.isScaled) {
+        this.isScaled = true;
+        this.baseFontSize = fontSize;
+      }
+
+      const newSize = Math.floor(fontSize * scale);
+      this.text.style.fontSize = `${Math.min(
+        newSize - 1,
+        this.baseFontSize
+      )}px`;
     },
   },
 });
