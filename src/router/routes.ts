@@ -26,11 +26,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/pages/ErrorNotFound.vue'),
       },
        */
-      //public document page !PUBLIC
-      {
-        path: 'public/<email>/<name>',
-        component: () => import('src/pages/ErrorNotFound.vue'),
-      },
     ],
     beforeEnter: (to, from, next) => {
       // Check authentication before entering any child route
@@ -59,6 +54,17 @@ const routes: RouteRecordRaw[] = [
     component: () => import('layouts/AuthLayout.vue'),
     children: [
       { path: '', component: () => import('src/pages/SignUp.Page.vue') },
+    ],
+  },
+  {
+    //public document page: PUBLIC
+    path: '/public',
+    component: () => import('layouts/AuthLayout.vue'),
+    children: [
+      {
+        path: ':email/:id',
+        component: () => import('src/pages/DocumentPublic.Page.vue'),
+      },
     ],
   },
 

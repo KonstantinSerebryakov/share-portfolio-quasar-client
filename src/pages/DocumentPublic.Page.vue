@@ -1,7 +1,11 @@
 <template>
   <q-page
-    class="q-px-md q-pt-md q-pb-md row wrap items-start content-start bg-blue-1"
+    class="q-px-md q-pt-md q-pb-md row wrap items-start content-start q-mx-auto q-my-none"
+    style="max-width: 1024px"
+    id="particles-js"
   >
+    <!-- <router-view style="max-width: 1024px" class="q-mx-auto q-my-none" /> -->
+
     <!-- intro block start -->
     <div
       class="col-12 items-stretch row bg-greys-5 rounded-borders background-image"
@@ -61,6 +65,7 @@ export default defineComponent({
     const profileId = route.params.id as string;
     const profileStore = useProfileStore();
     profileStore.synchronizeById(profileId, true);
+
     return {};
   },
   methods: {

@@ -34,6 +34,7 @@ module.exports = configure(function (/* ctx */) {
       'axios',
       'axios-interceptors',
       'event-bus',
+      'vue-particles',
     ],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#css
