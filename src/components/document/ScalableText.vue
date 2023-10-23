@@ -1,5 +1,5 @@
 <template>
-  <div class="">
+  <div ref="container">
     <q-resize-observer @resize="onResize" />
     <span ref="text">
       {{ value }}
@@ -21,13 +21,20 @@ export default defineComponent({
   },
   setup(props, context) {
     const text = ref(null as HTMLElement | null);
+    const container = ref(null as HTMLElement | null);
     const isScaled = ref(false);
     const baseFontSize = ref(9999999);
-    return { text, isScaled, baseFontSize };
+    const prevWidth1 = ref(9999999);
+    const prevWidth2 = ref(9999999);
+    return { text, container, isScaled, baseFontSize, prevWidth1, prevWidth2 };
   },
   methods: {
     onResize({ height, width }: { height: number; width: number }) {
       if (!this.text) return;
+      if (!this.container) return;
+      if (width === this.prevWidth2) return;
+      this.prevWidth2 = this.prevWidth1;
+      this.prevWidth1 = width;
 
       const textWidth = this.text.offsetWidth;
       if (width > textWidth && !this.isScaled) return;
@@ -45,9 +52,13 @@ export default defineComponent({
       }
 
       const newSize = Math.floor(fontSize * scale);
-      this.text.style.fontSize = `${Math.min(
-        newSize - 1,
-        this.baseFontSize
+      this.text.style.fontSize = `${Math.max(
+        1,
+        Math.min(newSize - 1, this.baseFontSize)
+      )}px`;
+      this.container.style.lineHeight = `${Math.max(
+        1,
+        Math.min(newSize - 1, this.baseFontSize)
       )}px`;
     },
   },

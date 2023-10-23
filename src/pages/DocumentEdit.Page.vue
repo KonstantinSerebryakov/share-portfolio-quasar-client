@@ -1,28 +1,49 @@
 <template>
-  <q-page class="q-px-md q-pt-md q-pb-md row wrap items-start content-start">
-    <div class="col-12 items-stretch row bg-orange rounded-borders">
-      <div class="col-12 col-sm-4">
-        <!-- <div class="col-12 col-sm-4" style="height: calc(100vh-50px)"> -->
-        <q-img
-          src="https://loremflickr.com/300/400"
-          :ratio="3 / 4"
-          class="rounded-borders"
-          style="max-height: calc(100vh - 50px - $space-md)"
-        />
-      </div>
-      <div class="col-12 col-sm content-around row">
-        <div class="col-12">
+  <q-page
+    class="q-px-md q-pt-md q-pb-md row wrap items-start content-start bg-blue-1"
+  >
+    <!-- intro block start -->
+    <div
+      class="col-12 items-stretch row bg-grey-5 rounded-borders background-image"
+      style="background-image: url('https://loremflickr.com/300/400')"
+    >
+      <q-img
+        src="https://loremflickr.com/300/400"
+        :ratio="3 / 4"
+        class="rounded-borders full-height col-12 col-sm-4 col-md-3"
+        style="max-height: calc(100vh - 50px - $space-md)"
+      >
+        <div v-if="$q.screen.lt.sm" class="absolute-bottom">
           <scalable-text
             value="Konstantin Serebryakov"
             class="text-h1 text-no-wrap non-selectable text-weight-bolder"
           ></scalable-text>
           <scalable-text
-            value="Konsta xxx aaa sss"
+            value="JavaScript developer"
+            class="text-h5 text-no-wrap non-selectable"
+          ></scalable-text>
+        </div>
+      </q-img>
+      <div v-if="$q.screen.gt.xs" class="col-12 col-sm content-around row">
+        <div class="col-12">
+          <scalable-text
+            value="Namee and anawfawfawfaw"
+            class="text-h1 text-no-wrap non-selectable text-weight-bolder"
+          ></scalable-text>
+          <scalable-text
+            value="JavaScript developer"
             class="text-h5 text-no-wrap non-selectable text-weight-bolder"
           ></scalable-text>
         </div>
+        <div class="col-12"></div>
       </div>
     </div>
+    <!-- intro block end -->
+    <!-- main description block start -->
+    <div class="col-12 items-stretch row bg-grey rounded-borders q-mt-md">
+      contacts
+    </div>
+    <!-- main description block end -->
   </q-page>
 </template>
 
@@ -49,3 +70,10 @@ export default defineComponent({
   },
 });
 </script>
+<style scoped>
+.background-image {
+  background-image: url('path-to-your-image.jpg');
+  background-size: cover;
+  background-position: center;
+}
+</style>
